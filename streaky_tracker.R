@@ -2,6 +2,7 @@ library(shiny)
 library(rvest)
 library(dplyr)
 library(stringr)
+library(DT)
 
 hitters_api <- "https://www.fangraphs.com/api/leaders/major-league/data?age=&pos=all&stats=bat&lg=all&qual=1&season=2025&season1=2025&startdate=2025-03-01&enddate=2025-11-01&month=0&hand=&team=0%2Cto&pageitems=2000000000&pagenum=1&ind=0&rost=0&players=&type=8&postseason=&sortdir=default&sortstat=PlayerName"
 r <- GET(hitters_api)
@@ -21,7 +22,8 @@ ui <- fluidPage(
       selectInput("player", "Choose a Player:", choices = c("", hitters$data.PlayerName))
     ),
     mainPanel(
-      textOutput("selection")
+      textOutput("selection"),
+      DTOutput("game_log")
     )
   )
 )
@@ -45,6 +47,24 @@ server <- function(input, output, session) {
   output$selection <- renderText({
     req(input$team, input$player)
     paste0("You selected: ", input$team, ", ", input$player)
+  })
+  
+  player_game_log <- reactive({
+    req(input$player)
+    pid <- hitters$data.playerid[hitters$data.PlayerName == input$player]
+    
+    log_api <- "https://www.fangraphs.com/api/players/game-log?playerid=25524&position=2B%2F3B%2FSS&type=0"
+    r <- GET(log_api)
+    log <- fromJSON(content(r, as = "text"))
+    as.data.frame(log)
+  })
+  
+  output$game_log <- renderDT({
+    req(player_game_log())
+    log_subset <- player_game_log() %>%
+      select(mlb.PA, mlb.H) %>%
+      head(10)
+    datatable(log_subset, options = list(pageLength = 10))
   })
 }
 
