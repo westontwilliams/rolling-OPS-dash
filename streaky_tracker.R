@@ -52,8 +52,13 @@ server <- function(input, output, session) {
   player_game_log <- reactive({
     req(input$player)
     pid <- hitters$data.playerid[hitters$data.PlayerName == input$player]
+    pos <- hitters$data.position[hitters$data.PlayerName == input$player]
     
-    log_api <- "https://www.fangraphs.com/api/players/game-log?playerid=25524&position=2B%2F3B%2FSS&type=0"
+    log_api <- paste0("https://www.fangraphs.com/api/players/game-log?",
+      "playerid=", pid,
+      "&position=", URLencode(pos),
+      "&type=0"
+    )
     r <- GET(log_api)
     log <- fromJSON(content(r, as = "text"))
     log <- as.data.frame(log)
