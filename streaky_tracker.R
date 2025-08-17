@@ -16,8 +16,8 @@ ui <- fluidPage(
   titlePanel("Select an MLB Team"),
   sidebarLayout(
     sidebarPanel(
-      selectInput("team", "Choose a Team:", choices = teams),
-      selectInput("player", "Choose a Player:", choices = hitters_final$data.PlayerName)
+      selectInput("team", "Choose a Team:", choices = c("", teams)),
+      selectInput("player", "Choose a Player:", choices = c("", hitters_final$data.PlayerName))
     ),
     mainPanel(
       textOutput("selection")
