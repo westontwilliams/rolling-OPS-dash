@@ -56,13 +56,17 @@ server <- function(input, output, session) {
     log_api <- "https://www.fangraphs.com/api/players/game-log?playerid=25524&position=2B%2F3B%2FSS&type=0"
     r <- GET(log_api)
     log <- fromJSON(content(r, as = "text"))
-    as.data.frame(log)
+    log <- as.data.frame(log)
+    colnames(log) <- gsub("^mlb\\.", "", colnames(log))
+    log
   })
   
   output$game_log <- renderDT({
     req(player_game_log())
     log_subset <- player_game_log() %>%
-      select(mlb.PA, mlb.H) %>%
+      slice(-1) %>% 
+      mutate(Date = str_extract(Date, "(?<=\\>).*?(?=\\<)")) %>% 
+      select(Date, PA, H) %>%
       head(10)
     datatable(log_subset, options = list(pageLength = 10))
   })
