@@ -46,7 +46,7 @@ server <- function(input, output, session) {
   
   output$selection <- renderText({
     req(input$team, input$player)
-    paste0("You selected: ", input$team, ", ", input$player)
+    paste0(input$team, " - ", input$player)
   })
   
   player_game_log <- reactive({
