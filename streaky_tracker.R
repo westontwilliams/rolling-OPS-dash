@@ -27,6 +27,7 @@ ui <- fluidPage(
 
 server <- function(input, output) {
   output$selection <- renderText({
+    req(input$team, input$player)
     paste0("You selected: ", input$team, ", ", input$player)
   })
 }
