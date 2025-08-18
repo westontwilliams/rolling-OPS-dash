@@ -72,7 +72,7 @@ server <- function(input, output, session) {
     log_subset <- player_game_log() %>%
       slice(-1) %>% 
       mutate(Date = str_extract(Date, "(?<=\\>).*?(?=\\<)")) %>% 
-      select(Date, PA, H) %>%
+      select(Date, PA, R, H, RBI, BB, HR) %>%
       head(10)
     datatable(log_subset, options = list(pageLength = 10))
   })
