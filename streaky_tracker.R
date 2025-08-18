@@ -45,8 +45,9 @@ server <- function(input, output, session) {
   })
   
   output$selection <- renderText({
-    req(input$team, input$player)
-    paste0(input$team, " - ", input$player)
+    req(input$player)
+    player_team <- hitters$data.TeamName[hitters$data.PlayerName == input$player]
+    paste0(player_team, " - ", input$player)
   })
   
   player_game_log <- reactive({
