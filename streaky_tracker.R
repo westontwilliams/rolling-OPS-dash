@@ -3,6 +3,8 @@ library(rvest)
 library(dplyr)
 library(stringr)
 library(DT)
+library(ggplot2)
+library(zoo)
 
 hitters_api <- "https://www.fangraphs.com/api/leaders/major-league/data?age=&pos=all&stats=bat&lg=all&qual=1&season=2025&season1=2025&startdate=2025-03-01&enddate=2025-11-01&month=0&hand=&team=0%2Cto&pageitems=2000000000&pagenum=1&ind=0&rost=0&players=&type=8&postseason=&sortdir=default&sortstat=PlayerName"
 r <- GET(hitters_api)
@@ -23,7 +25,8 @@ ui <- fluidPage(
     ),
     mainPanel(
       textOutput("selection"),
-      DTOutput("game_log")
+      DTOutput("game_log"),
+      plotOutput("wrc_plot")
     )
   )
 )
@@ -72,7 +75,7 @@ server <- function(input, output, session) {
     log_subset <- player_game_log() %>%
       slice(-1) %>% 
       mutate(Date = str_extract(Date, "(?<=\\>).*?(?=\\<)")) %>% 
-      select(Date, PA, R, H, RBI, BB, HR, SB) %>%
+      select(Date, PA, AB, R, H, RBI, BB, HR, SB) %>%
       head(10)
     datatable(log_subset, options = list(
       dom = 't',
@@ -81,6 +84,27 @@ server <- function(input, output, session) {
       info = FALSE
     ),
     rownames = FALSE )
+  })
+  
+  output$wrc_plot <- renderPlot({
+    req(player_game_log())
+    log_subset <- player_game_log() %>%
+      slice(-1) %>% 
+      mutate(Date = str_extract(Date, "(?<=\\>).*?(?=\\<)"))
+    log_subset$Date <- as.Date(log_subset$Date)
+    log_subset$WRC. <- as.numeric(log_subset$wRC.)
+    log_subset <- log_subset %>%
+      arrange(Date) %>%
+      mutate(rolling_wrc = zoo::rollmean(wRC., k = 10, fill = NA, align = "right"))
+    ggplot(log_subset, aes(x = Date, y = rolling_wrc)) +
+      geom_line(size = 1) +
+      geom_point() +
+      labs(
+        title = paste0("10-Game Rolling wRC+ for ", input$player),
+        x = "Date",
+        y = "Rolling wRC+"
+      ) +
+      theme_minimal(base_size = 14)
   })
 }
 
