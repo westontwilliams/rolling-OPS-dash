@@ -50,7 +50,7 @@ server <- function(input, output, session) {
   output$selection <- renderText({
     req(input$player)
     player_team <- hitters$data.TeamName[hitters$data.PlayerName == input$player]
-    paste0(player_team, " - ", input$player)
+    paste0(player_team, " - ", input$player, ": Last 10 Games")
   })
   
   player_game_log <- reactive({
@@ -96,15 +96,20 @@ server <- function(input, output, session) {
     log_subset <- log_subset %>%
       arrange(Date) %>%
       mutate(rolling_wrc = zoo::rollmean(wRC., k = 10, fill = NA, align = "right"))
+    season_wrc <- hitters$data.wRC.[hitters$data.PlayerName == input$player]
     ggplot(log_subset, aes(x = Date, y = rolling_wrc)) +
       geom_line(color = "steelblue", size = 1) +
       geom_point(color = "darkred") +
+      geom_hline(yintercept = 100, linetype = "dashed", color = "black", size = 0.8) +
+      geom_hline(yintercept = season_wrc, linetype = "dashed", color = "darkgreen", size = 0.8) +
+      annotate("text", x = min(log_subset$Date), y = 100, label = "League Average wRC+ (100)", hjust = 0, vjust = -0.5, color = "black") +
+      annotate("text", x = min(log_subset$Date), y = season_wrc, label = paste0(input$player, " Season wRC+ - ", round(season_wrc)), hjust = 0, vjust = -0.5, color = "darkgreen") +
       labs(
         title = paste0("10-Game Rolling wRC+ for ", input$player),
         x = "Date",
         y = "Rolling wRC+"
       ) +
-      theme_minimal(base_size = 14)
+      theme_classic(base_size = 14)
   })
 }
 
