@@ -26,7 +26,7 @@ ui <- fluidPage(
     mainPanel(
       textOutput("selection"),
       DTOutput("game_log"),
-      plotOutput("wrc_plot")
+      plotOutput("ops_plot")
     )
   )
 )
@@ -86,28 +86,28 @@ server <- function(input, output, session) {
     rownames = FALSE )
   })
   
-  output$wrc_plot <- renderPlot({
+  output$ops_plot <- renderPlot({
     req(player_game_log())
     log_subset <- player_game_log() %>%
       slice(-1) %>% 
       mutate(Date = str_extract(Date, "(?<=\\>).*?(?=\\<)"))
     log_subset$Date <- as.Date(log_subset$Date)
-    log_subset$WRC. <- as.numeric(log_subset$wRC.)
+    log_subset$OPS <- as.numeric(log_subset$OPS)
     log_subset <- log_subset %>%
       arrange(Date) %>%
-      mutate(rolling_wrc = zoo::rollmean(wRC., k = 10, fill = NA, align = "right"))
-    season_wrc <- hitters$data.wRC.[hitters$data.PlayerName == input$player]
-    ggplot(log_subset, aes(x = Date, y = rolling_wrc)) +
+      mutate(rolling_ops = zoo::rollmean(OPS, k = 10, fill = NA, align = "right"))
+    season_ops <- hitters$data.OPS[hitters$data.PlayerName == input$player]
+    ggplot(log_subset, aes(x = Date, y = rolling_ops)) +
       geom_line(color = "steelblue", size = 1) +
       geom_point(color = "darkred") +
-      geom_hline(yintercept = 100, linetype = "dashed", color = "black", size = 0.8) +
-      geom_hline(yintercept = season_wrc, linetype = "dashed", color = "darkgreen", size = 0.8) +
-      annotate("text", x = min(log_subset$Date), y = 100, label = "League Average wRC+ (100)", hjust = 0, vjust = -0.5, color = "black") +
-      annotate("text", x = min(log_subset$Date), y = season_wrc, label = paste0(input$player, " Season wRC+ - ", round(season_wrc)), hjust = 0, vjust = -0.5, color = "darkgreen") +
+      #geom_hline(yintercept = 100, linetype = "dashed", color = "black", size = 0.8) +
+      geom_hline(yintercept = season_ops, linetype = "dashed", color = "darkgreen", size = 0.8) +
+      #annotate("text", x = min(log_subset$Date), y = 100, label = "League Average wRC+ (100)", hjust = 0, vjust = -0.5, color = "black") +
+      annotate("text", x = min(log_subset$Date), y = season_ops, label = paste0(input$player, " Season OPS - ", round(season_ops, 3)), hjust = 0, vjust = -0.5, color = "darkgreen") +
       labs(
-        title = paste0("10-Game Rolling wRC+ for ", input$player),
+        title = paste0("10-Game Rolling OPS for ", input$player),
         x = "Date",
-        y = "Rolling wRC+"
+        y = "Rolling OPS"
       ) +
       theme_classic(base_size = 14)
   })
