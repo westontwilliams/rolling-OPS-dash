@@ -97,8 +97,8 @@ server <- function(input, output, session) {
       arrange(Date) %>%
       mutate(rolling_wrc = zoo::rollmean(wRC., k = 10, fill = NA, align = "right"))
     ggplot(log_subset, aes(x = Date, y = rolling_wrc)) +
-      geom_line(size = 1) +
-      geom_point() +
+      geom_line(color = "steelblue", size = 1) +
+      geom_point(color = "darkred") +
       labs(
         title = paste0("10-Game Rolling wRC+ for ", input$player),
         x = "Date",
