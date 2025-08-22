@@ -50,7 +50,7 @@ server <- function(input, output, session) {
   output$selection <- renderText({
     req(input$player)
     player_team <- hitters$data.TeamName[hitters$data.PlayerName == input$player]
-    paste0(player_team, " - ", input$player, ": Last 10 Games")
+    paste0(input$player, " (", player_team, ") : Last 10 Games")
   })
   
   player_game_log <- reactive({
@@ -94,21 +94,22 @@ server <- function(input, output, session) {
     log_subset$Date <- as.Date(log_subset$Date)
     log_subset$OPS <- as.numeric(log_subset$OPS)
     log_subset <- log_subset %>%
+      mutate(weighted_ops = OPS*PA) %>% 
       arrange(Date) %>%
-      mutate(rolling_ops = zoo::rollmean(OPS, k = 10, fill = NA, align = "right"))
+      mutate(rolling_weighted_ops = zoo::rollsum(weighted_ops, k = 10, fill = NA, align = "right")) %>% 
+      mutate(sum_pa = zoo::rollsum(PA, k=10, fill = NA, align = "right")) %>% 
+      mutate(rolling_ops = rolling_weighted_ops/sum_pa)
     season_ops <- hitters$data.OPS[hitters$data.PlayerName == input$player]
     ggplot(log_subset, aes(x = Date, y = rolling_ops)) +
       geom_line(color = "steelblue", size = 1) +
       geom_point(color = "darkred") +
-      #geom_hline(yintercept = 100, linetype = "dashed", color = "black", size = 0.8) +
       geom_hline(yintercept = season_ops, linetype = "dashed", color = "darkgreen", size = 0.8) +
-      #annotate("text", x = min(log_subset$Date), y = 100, label = "League Average wRC+ (100)", hjust = 0, vjust = -0.5, color = "black") +
-      annotate("text", x = min(log_subset$Date), y = season_ops, label = paste0(input$player, " Season OPS - ", round(season_ops, 3)), hjust = 0, vjust = -0.5, color = "darkgreen") +
+      annotate("text", x = min(log_subset$Date), y = 2.0, label = paste0(" Season OPS: ", round(season_ops, 3)), hjust = 0.1, color = "darkgreen") +
       labs(
-        title = paste0("10-Game Rolling OPS for ", input$player),
-        x = "Date",
-        y = "Rolling OPS"
+        title = paste0("10-Game Rolling OPS for ", input$player)
       ) +
+      xlab("") +
+      ylab("") +
       ylim(0, 2) +
       theme_classic(base_size = 14)
   })
