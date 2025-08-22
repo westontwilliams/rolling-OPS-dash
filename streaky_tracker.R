@@ -109,6 +109,7 @@ server <- function(input, output, session) {
         x = "Date",
         y = "Rolling OPS"
       ) +
+      ylim(0, 2) +
       theme_classic(base_size = 14)
   })
 }
