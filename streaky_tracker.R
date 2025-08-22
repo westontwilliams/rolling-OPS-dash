@@ -16,6 +16,11 @@ r <- GET(teams_api)
 teams <- fromJSON(content(r, as = "text"))
 teams <- as.data.frame(teams)
 
+league_api <- "https://www.fangraphs.com/api/leaders/major-league/data?age=&pos=all&stats=bat&lg=all&qual=0&season=2025&season1=2025&startdate=2025-03-01&enddate=2025-11-01&month=0&hand=&team=0%2Css&pageitems=30&pagenum=1&ind=0&rost=0&players=&type=8&postseason=&sortdir=default&sortstat=WAR"
+r <- GET(league_api)
+league <- fromJSON(content(r, as = "text"))
+league <- as.data.frame(league)
+
 ui <- fluidPage(
   titlePanel("Select an MLB Team"),
   sidebarLayout(
@@ -100,18 +105,22 @@ server <- function(input, output, session) {
       mutate(sum_pa = zoo::rollsum(PA, k=10, fill = NA, align = "right")) %>% 
       mutate(rolling_ops = rolling_weighted_ops/sum_pa)
     season_ops <- hitters$data.OPS[hitters$data.PlayerName == input$player]
-    ggplot(log_subset, aes(x = Date, y = rolling_ops)) +
-      geom_line(color = "steelblue", size = 1) +
-      geom_point(color = "darkred") +
-      geom_hline(yintercept = season_ops, linetype = "dashed", color = "darkgreen", size = 0.8) +
-      annotate("text", x = min(log_subset$Date), y = 2.0, label = paste0(" Season OPS: ", round(season_ops, 3)), hjust = 0.1, color = "darkgreen") +
+    ggplot(log_subset, aes(x = Date, y = rolling_ops, color = rolling_ops)) +
+      geom_line(size = 1) +
+      geom_point() +
+      scale_color_gradient2(low = "blue4", mid = "gray", high = "red4", midpoint = league$data.OPS, limits = c(0,2)) +
+      geom_hline(yintercept = season_ops, linetype = "dashed", color = "dodgerblue2", size = 0.8) +
+      geom_hline(yintercept = league$data.OPS, linetype = "dashed", color = "black", size = 0.8) +
+      annotate("text", x = min(log_subset$Date), y = 2.0, label = paste0(" Season OPS: ", round(season_ops, 3)), fontface = "bold", hjust = 0.1, color = "dodgerblue2") +
+      annotate("text", x = min(log_subset$Date), y = 1.9, label = paste0(" League OPS: ", sprintf("%.3f", league$data.OPS)), fontface = "bold", hjust = 0.1, color = "black") +
       labs(
         title = paste0("10-Game Rolling OPS for ", input$player)
       ) +
       xlab("") +
       ylab("") +
       ylim(0, 2) +
-      theme_classic(base_size = 14)
+      theme_classic(base_size = 14) +
+      guides(color = "none")
   })
 }
 
