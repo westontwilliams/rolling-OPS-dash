@@ -108,7 +108,7 @@ server <- function(input, output, session) {
     ggplot(log_subset, aes(x = Date, y = rolling_ops, color = rolling_ops)) +
       geom_line(size = 1) +
       geom_point() +
-      scale_color_gradient2(low = "blue4", mid = "gray", high = "red4", midpoint = league$data.OPS, limits = c(0,2)) +
+      scale_color_gradient2(low = "blue", mid = "gray", high = "red", midpoint = league$data.OPS, limits = c(0,2)) +
       geom_hline(yintercept = season_ops, linetype = "dashed", color = "dodgerblue2", size = 0.8) +
       geom_hline(yintercept = league$data.OPS, linetype = "dashed", color = "black", size = 0.8) +
       annotate("text", x = min(log_subset$Date), y = 2.0, label = paste0(" Season OPS: ", round(season_ops, 3)), fontface = "bold", hjust = 0.1, color = "dodgerblue2") +
