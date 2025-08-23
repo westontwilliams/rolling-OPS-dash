@@ -26,7 +26,9 @@ ui <- fluidPage(
   sidebarLayout(
     sidebarPanel(
       selectInput("team", "Choose a Team:", choices = c("", teams$data.TeamName)),
-      selectInput("player", "Choose a Player:", choices = c("", hitters$data.PlayerName))
+      actionButton("clear_team", "Clear Team Selection"),
+      selectInput("player", "Choose a Player:", choices = c("", hitters$data.PlayerName)),
+      actionButton("clear_player", "Clear Player Selection")
     ),
     mainPanel(
       textOutput("selection"),
@@ -50,6 +52,17 @@ server <- function(input, output, session) {
     updateSelectInput(session, "player",
                       choices = c("", filtered_players()),
                       selected = "")
+  })
+  
+  observeEvent(input$clear_team, {
+    updateSelectInput(session, "team", selected = "")
+    updateSelectInput(session, "player",
+                      choices = c("", sort(hitters$data.PlayerName)),
+                      selected = "")
+  })
+  
+  observeEvent(input$clear_player, {
+    updateSelectInput(session, "player", selected = "")
   })
   
   output$selection <- renderText({
