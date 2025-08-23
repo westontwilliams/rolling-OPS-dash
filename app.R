@@ -24,7 +24,7 @@ league <- fromJSON(content(r, as = "text"))
 league <- as.data.frame(league)
 
 ui <- fluidPage(
-  titlePanel("Select an MLB Team"),
+  titlePanel("Rolling OPS Tracker"),
   sidebarLayout(
     sidebarPanel(
       selectInput("team", "Choose a Team:", choices = c("", teams$data.TeamName)),
