@@ -54,32 +54,44 @@ server <- function(input, output, session) {
   
   output$selection <- renderText({
     req(input$player)
-    player_team <- hitters$data.TeamName[hitters$data.PlayerName == input$player]
-    paste0(input$player, " (", player_team, "): Last 10 Games")
+    player_teams <- hitters %>%
+      filter(data.PlayerName == input$player) %>%
+      pull(data.TeamName) %>%
+      unique() %>%
+      paste(collapse = "/")
+    paste0(input$player, " (", player_teams, "): Last 10 Games")
   })
   
   player_game_log <- reactive({
     req(input$player)
-    pid <- hitters$data.playerid[hitters$data.PlayerName == input$player]
-    pos <- hitters$data.position[hitters$data.PlayerName == input$player]
+    pids <- hitters$data.playerid[hitters$data.PlayerName == input$player]
+    positions <- hitters$data.position[hitters$data.PlayerName == input$player]
     
-    log_api <- paste0("https://www.fangraphs.com/api/players/game-log?",
-      "playerid=", pid,
-      "&position=", URLencode(pos),
-      "&type=0"
-    )
-    r <- GET(log_api)
-    log <- fromJSON(content(r, as = "text"))
-    log <- as.data.frame(log)
-    colnames(log) <- gsub("^mlb\\.", "", colnames(log))
-    log
+    all_logs <- lapply(seq_along(pids), function(i) {
+      log_api <- paste0("https://www.fangraphs.com/api/players/game-log?",
+                        "playerid=", pids[i],
+                        "&position=", URLencode(positions[i]),
+                        "&type=0")
+      r <- GET(log_api)
+      log <- fromJSON(content(r, as = "text"))
+      log <- as.data.frame(log)
+      colnames(log) <- gsub("^mlb\\.", "", colnames(log))
+      log
+    })
+    
+    combined_log <- bind_rows(all_logs) %>%
+      slice(-1) %>%
+      mutate(Date = str_extract(Date, "(?<=\\>).*?(?=\\<)")) %>%
+      filter(!is.na(Date) & Date != "" & Date < as.Date("2040-01-01")) %>%
+      distinct()
+    
+    combined_log$Date <- as.Date(combined_log$Date)
+    combined_log
   })
   
   output$game_log <- renderDT({
     req(player_game_log())
     log_subset <- player_game_log() %>%
-      slice(-1) %>% 
-      mutate(Date = str_extract(Date, "(?<=\\>).*?(?=\\<)")) %>% 
       select(Date, PA, AB, R, H, RBI, BB, HR, SB) %>%
       head(10)
     datatable(log_subset, options = list(
@@ -93,9 +105,7 @@ server <- function(input, output, session) {
   
   output$ops_plot <- renderPlot({
     req(player_game_log())
-    log_subset <- player_game_log() %>%
-      slice(-1) %>% 
-      mutate(Date = str_extract(Date, "(?<=\\>).*?(?=\\<)"))
+    log_subset <- player_game_log()
     log_subset$Date <- as.Date(log_subset$Date)
     log_subset$OPS <- as.numeric(log_subset$OPS)
     log_subset <- log_subset %>%
@@ -104,7 +114,10 @@ server <- function(input, output, session) {
       mutate(rolling_weighted_ops = zoo::rollsum(weighted_ops, k = 10, fill = NA, align = "right")) %>% 
       mutate(sum_pa = zoo::rollsum(PA, k=10, fill = NA, align = "right")) %>% 
       mutate(rolling_ops = rolling_weighted_ops/sum_pa)
-    season_ops <- hitters$data.OPS[hitters$data.PlayerName == input$player]
+    season_ops <- hitters %>%
+      filter(data.PlayerName == input$player) %>%
+      summarize(season_ops = sum(as.numeric(data.OPS) * as.numeric(data.PA), na.rm = TRUE) / sum(as.numeric(data.PA), na.rm = TRUE)) %>%
+      pull(season_ops)
     ggplot(log_subset, aes(x = Date, y = rolling_ops, color = rolling_ops)) +
       geom_line(size = 1) +
       geom_point() +
