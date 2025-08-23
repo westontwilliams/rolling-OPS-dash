@@ -139,7 +139,7 @@ server <- function(input, output, session) {
       scale_color_gradient2(low = "blue", mid = "gray", high = "red", midpoint = league$data.OPS, limits = c(0,2)) +
       geom_hline(yintercept = season_ops, linetype = "dashed", color = "dodgerblue2", size = 0.8) +
       geom_hline(yintercept = league$data.OPS, linetype = "dashed", color = "black", size = 0.8) +
-      annotate("text", x = min(log_subset$Date), y = 2.0, label = paste0(" Season OPS: ", round(season_ops, 3)), fontface = "bold", hjust = 0.1, color = "dodgerblue2") +
+      annotate("text", x = min(log_subset$Date), y = 2.0, label = paste0(" Season OPS: ", sprintf("%.3f", season_ops)), fontface = "bold", hjust = 0.1, color = "dodgerblue2") +
       annotate("text", x = min(log_subset$Date), y = 1.9, label = paste0(" League OPS: ", sprintf("%.3f", league$data.OPS)), fontface = "bold", hjust = 0.1, color = "black") +
       labs(
         title = paste0("10-Game Rolling OPS for ", input$player)
