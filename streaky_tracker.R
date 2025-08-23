@@ -55,7 +55,7 @@ server <- function(input, output, session) {
   output$selection <- renderText({
     req(input$player)
     player_team <- hitters$data.TeamName[hitters$data.PlayerName == input$player]
-    paste0(input$player, " (", player_team, ") : Last 10 Games")
+    paste0(input$player, " (", player_team, "): Last 10 Games")
   })
   
   player_game_log <- reactive({
