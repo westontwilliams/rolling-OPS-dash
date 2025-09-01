@@ -27,9 +27,9 @@ ui <- fluidPage(
   titlePanel("Rolling OPS Tracker"),
   sidebarLayout(
     sidebarPanel(
-      selectInput("team", "Choose a Team:", choices = c("", teams$data.TeamName)),
+      selectizeInput("team", "Choose a Team:", choices = c("", teams$data.TeamName)),
       actionButton("clear_team", "Clear Team Selection"),
-      selectInput("player", "Choose a Player:", choices = c("", hitters$data.PlayerName)),
+      selectizeInput("player", "Choose a Player:", choices = c("", hitters$data.PlayerName)),
       actionButton("clear_player", "Clear Player Selection")
     ),
     mainPanel(
