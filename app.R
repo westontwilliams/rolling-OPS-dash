@@ -31,6 +31,7 @@ team_choices <- setNames(teams$abbreviation, teams$abbreviation)
 all_players <- sort(unique(hitters$player.fullName))
 
 ui <- fluidPage(
+  lang = "en",
   titlePanel("Rolling OPS Tracker"),
   sidebarLayout(
     sidebarPanel(
@@ -162,11 +163,11 @@ server <- function(input, output, session) {
       pull(season_ops)
     
     ggplot(log_subset, aes(x = Date, y = rolling_ops, color = rolling_ops)) +
-      geom_line(size = 1) +
+      geom_line(linewidth = 1) +
       geom_point() +
       scale_color_gradient2(low = "blue", mid = "gray", high = "red", midpoint = league_ops, limits = c(0,2)) +
-      geom_hline(yintercept = season_ops, linetype = "dashed", color = "dodgerblue2", size = 0.8) +
-      geom_hline(yintercept = league_ops, linetype = "dashed", color = "black", size = 0.8) +
+      geom_hline(yintercept = season_ops, linetype = "dashed", color = "dodgerblue2", linewidth = 0.8) +
+      geom_hline(yintercept = league_ops, linetype = "dashed", color = "black", linewidth = 0.8) +
       annotate("text", x = min(log_subset$Date), y = 2.0, label = paste0(" Season OPS: ", sprintf("%.3f", season_ops)), fontface = "bold", hjust = 0.1, color = "dodgerblue2") +
       annotate("text", x = min(log_subset$Date), y = 1.9, label = paste0(" League OPS: ", sprintf("%.3f", league_ops)), fontface = "bold", hjust = 0.1, color = "black") +
       labs(
