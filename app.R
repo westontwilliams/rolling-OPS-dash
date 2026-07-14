@@ -16,6 +16,8 @@ colnames(hitters) <- gsub("^stat\\.", "", colnames(hitters))
 hitters <- hitters %>% mutate(
   PA = as.numeric(plateAppearances),
   OPS = as.numeric(ops)
+) %>% filter(
+  PA > 0
 )
 
 teams_api <- "https://statsapi.mlb.com/api/v1/teams?sportId=1&season=2026&activeStatus=Yes"
