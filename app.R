@@ -191,25 +191,27 @@ server <- function(input, output, session) {
     ggpoint = ggplot() +
       geom_line(data = log_subset, aes(x = Date, y = rolling_ops, color = rolling_ops), linewidth = 1) +
       geom_point_interactive(data = log_subset, aes(x = Date, y = rolling_ops, color = rolling_ops,
-                                                    tooltip = tooltip_label, data_id = row_id), size = 2.5) +
+                                                    tooltip = tooltip_label, data_id = row_id), size = 1.5) +
       scale_color_gradient2(low = "blue", mid = "gray", high = "red", midpoint = league_ops, limits = c(0,2)) +
       geom_hline(yintercept = season_ops, linetype = "dashed", color = "dodgerblue2", linewidth = 0.8) +
       geom_hline(yintercept = league_ops, linetype = "dashed", color = "black", linewidth = 0.8) +
       annotate("text", x = first_date, y = 1.98, label = paste0("Season OPS: ", sprintf("%.3f", season_ops)),
-               fontface = "bold", hjust = 0, color = "dodgerblue2") +
+              hjust = 0, color = "dodgerblue2") +
       annotate("text", x = first_date, y = 1.88, label = paste0("League OPS: ", sprintf("%.3f", league_ops)),
-               fontface = "bold", hjust = 0, color = "black") +
+              hjust = 0, color = "black") +
       scale_x_date(limits = x_limits) +
       coord_cartesian(ylim = c(0, 2)) +
       labs(title = paste0("10-Game Rolling OPS for ", input$player), x = NULL, y = NULL) +
-      theme_classic(base_size = 14) +
-      theme(plot.title = element_text(hjust = 0.5)) +
+      theme_classic(base_size = 12, base_family = "Helvetica") +
+      theme(plot.title = element_text(hjust = 0.5, family = "Helvetica")) +
       guides(color = "none")
     
     girafe(ggobj = ggpoint,
            options = list(
-             opts_hover(css = "fill:red;stroke:black;cursor:pointer;r:5pt;"),
-             opts_tooltip(css = "background-color:white;color:black;padding:6px;border:1px solid black;border-radius:4px;font-size:12px;")
+             opts_hover(css = "fill:white;stroke:black;cursor:pointer;r:5pt;"),
+             opts_tooltip(css = "background-color:white;color:black;padding:6px;border:1px solid black;border-radius:4px;font-size:12px;"),
+             opts_sizing(rescale = TRUE),
+             opts_toolbar(hidden = c('selection', 'zoom', 'misc'))
            ))
   })
 }
