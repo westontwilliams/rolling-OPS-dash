@@ -202,7 +202,7 @@ server <- function(input, output, session) {
       scale_x_date(limits = x_limits) +
       coord_cartesian(ylim = c(0, 2)) +
       labs(title = paste0("10-Game Rolling OPS for ", input$player), x = NULL, y = NULL) +
-      theme_classic(base_size = 12, base_family = "Helvetica") +
+      theme_classic(base_size = 10, base_family = "Helvetica") +
       theme(plot.title = element_text(hjust = 0.5, family = "Helvetica")) +
       guides(color = "none")
     
