@@ -196,6 +196,7 @@ server <- function(input, output, session) {
       coord_cartesian(ylim = c(0, 2)) +
       labs(title = paste0("10-Game Rolling OPS for ", input$player), x = NULL, y = NULL) +
       theme_classic(base_size = 14) +
+      theme(plot.title = element_text(hjust = 0.5)) +
       guides(color = "none")
   })
 }
