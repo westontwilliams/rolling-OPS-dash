@@ -207,6 +207,7 @@ server <- function(input, output, session) {
       guides(color = "none")
     
     girafe(ggobj = ggpoint,
+           width_svg = 6.5, height_svg = 4,
            options = list(
              opts_hover(css = "fill:white;stroke:black;cursor:pointer;r:5pt;"),
              opts_tooltip(css = "background-color:white;color:black;padding:6px;border:1px solid black;border-radius:4px;font-size:12px;"),
