@@ -7,6 +7,7 @@ library(ggplot2)
 library(zoo)
 library(httr)
 library(jsonlite)
+library(ggiraph)
 
 hitters_api <- "https://statsapi.mlb.com/api/v1/stats?stats=season&group=hitting&season=2026&sportIds=1&gameType=R&limit=2000&playerPool=all"
 r <- GET(hitters_api)
@@ -45,7 +46,7 @@ ui <- fluidPage(
     mainPanel(
       textOutput("selection"),
       DTOutput("game_log"),
-      plotOutput("ops_plot")
+      girafeOutput("ops_plot")
     )
   )
 )
@@ -146,7 +147,7 @@ server <- function(input, output, session) {
     rownames = FALSE )
   })
   
-  output$ops_plot <- renderPlot({
+  output$ops_plot <- renderGirafe({
     full_log <- player_game_log() %>%
       arrange(Date)
     
@@ -166,7 +167,12 @@ server <- function(input, output, session) {
           (roll_H + roll_BB + roll_HBP) / obp_denom + roll_TB / roll_AB
         )
       ) %>%
-      filter(!is.na(rolling_ops))
+      filter(!is.na(rolling_ops)) %>%
+      mutate(
+        tooltip_label = sprintf("%s\n10-Game OPS: %.3f",
+                                format(Date, "%b %d"), rolling_ops),
+        row_id = as.character(Date)
+      )
     
     season_ops <- hitters %>%
       filter(player.fullName == input$player) %>%
@@ -182,9 +188,10 @@ server <- function(input, output, session) {
       x_limits <- c(first_date, last_date)
     }
     
-    ggplot() +
+    ggpoint = ggplot() +
       geom_line(data = log_subset, aes(x = Date, y = rolling_ops, color = rolling_ops), linewidth = 1) +
-      geom_point(data = log_subset, aes(x = Date, y = rolling_ops, color = rolling_ops)) +
+      geom_point_interactive(data = log_subset, aes(x = Date, y = rolling_ops, color = rolling_ops,
+                                                    tooltip = tooltip_label, data_id = row_id), size = 2.5) +
       scale_color_gradient2(low = "blue", mid = "gray", high = "red", midpoint = league_ops, limits = c(0,2)) +
       geom_hline(yintercept = season_ops, linetype = "dashed", color = "dodgerblue2", linewidth = 0.8) +
       geom_hline(yintercept = league_ops, linetype = "dashed", color = "black", linewidth = 0.8) +
@@ -198,6 +205,12 @@ server <- function(input, output, session) {
       theme_classic(base_size = 14) +
       theme(plot.title = element_text(hjust = 0.5)) +
       guides(color = "none")
+    
+    girafe(ggobj = ggpoint,
+           options = list(
+             opts_hover(css = "fill:red;stroke:black;cursor:pointer;r:5pt;"),
+             opts_tooltip(css = "background-color:white;color:black;padding:6px;border:1px solid black;border-radius:4px;font-size:12px;")
+           ))
   })
 }
 
